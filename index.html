@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MAF Insight — Propuesta de Servicios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* ─── Brand Tokens ──────────────────────────────────────── */
+    :root {
+      --hot-pink:   #F05F88;
+      --baby-pink:  #FFCADD;
+      --butter:     #FFFDEA;
+      --fresh-mint: #EDFFF4;
+      --matcha:     #939471;
+      --sage:       #D6D9B0;
+      --peach:      #FFB299;
+      --orange:     #F58A68;
+      --black:      #1A1A1A;
+      --white:      #FFFFFF;
+      --gray:       #EEEEEE;
+
+      --font-main: 'Inter', sans-serif;
+      --font-accent: 'Instrument Serif', serif;
+    }
+
+    /* ─── Reset ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-main); color: var(--black); background: var(--butter); overflow-x: hidden; }
+
+    /* ═══════════════════════════════════════════════════════
+       GATE
+    ══════════════════════════════════════════════════════════ */
+    #gate {
+      position: fixed; inset: 0; z-index: 1000;
+      background: var(--hot-pink);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    /* decorative circles */
+    #gate::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      top: -200px; right: -150px;
+    }
+    #gate::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      bottom: -100px; left: -100px;
+    }
+
+    .gate-box {
+      background: var(--butter);
+      border-radius: 32px;
+      padding: 56px 48px;
+      width: 100%; max-width: 460px;
+      text-align: center;
+      position: relative; z-index: 1;
+      animation: gateIn .55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes gateIn {
+      from { opacity: 0; transform: scale(0.85) translateY(20px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* byMAF sticker badge */
+    .gate-badge {
+      display: inline-block;
+      background: var(--hot-pink);
+      color: var(--white);
+      font-family: var(--font-main);
+      font-weight: 900;
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+      padding: 8px 22px;
+      border-radius: 100px;
+      margin-bottom: 28px;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    }
+    .gate-badge span { font-weight: 300; font-style: italic; }
+
+    .gate-logo {
+      font-family: var(--font-main);
+      font-weight: 900;
+      font-size: 2.2rem;
+      color: var(--black);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+    }
+    .gate-logo .dot { color: var(--hot-pink); }
+    .gate-tagline {
+      font-family: var(--font-accent);
+      font-style: italic;
+      font-size: 0.95rem;
+      color: var(--matcha);
+      margin-bottom: 36px;
+    }
+
+    .gate-divider {
+      width: 40px; height: 3px;
+      background: var(--hot-pink);
+      border-radius: 2px;
+      margin: 0 auto 28px;
+    }
+
+    .gate-box h2 {
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--black); margin-bottom: 8px;
+    }
+    .gate-box p.sub {
+      font-size: 0.85rem; color: #888;
+      margin-bottom: 28px; line-height: 1.5;
+    }
+    .gate-box input {
+      width: 100%;
+      padding: 14px 18px;
+      border: 2px solid var(--gray);
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-family: var(--font-main);
+      color: var(--black);
+      background: var(--white);
+      margin-bottom: 12px;
+      transition: border-color .2s;
+      outline: none;
+    }
+    .gate-box input:focus { border-color: var(--hot-pink); }
+    .gate-box input::placeholder { color: #ccc; }
+
+    .gate-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--hot-pink);
+      color: white;
+      font-size: 0.95rem;
+      font-weight: 800;
+      font-family: var(--font-main);
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      margin-top: 4px;
+      box-shadow: 0 4px 0 #c44a70;
+      transition: transform .1s, box-shadow .1s;
+    }
+    .gate-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #c44a70; }
+    .gate-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #c44a70; }
+
+    .gate-error {
+      color: #c44a70; font-size: 0.82rem;
+      margin-top: 10px; display: none;
+    }
+
+    /* sticker decorations around gate card */
+    .gate-sticker {
+      position: absolute;
+      width: 110px;
+      height: auto;
+      animation: float 3s ease-in-out infinite;
+      user-select: none;
+      pointer-events: none;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.18));
+    }
+    .gate-sticker:nth-child(1) { top: 7%;  left: 10%;  animation-delay: 0s;   transform: rotate(-12deg); width: 100px; }
+    .gate-sticker:nth-child(2) { top: 12%; right: 8%;  animation-delay: .7s;  transform: rotate(10deg);  width: 95px;  }
+    .gate-sticker:nth-child(3) { bottom: 10%; left: 6%; animation-delay: 1.2s; transform: rotate(-8deg); width: 120px; }
+    .gate-sticker:nth-child(4) { bottom: 15%; right: 10%; animation-delay: .4s; transform: rotate(14deg); width: 110px; }
+    @keyframes float {
+      0%,100% { transform: translateY(0) rotate(var(--r, -8deg)); }
+      50%      { transform: translateY(-14px) rotate(calc(var(--r, -8deg) * -0.6)); }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       MAIN
+    ══════════════════════════════════════════════════════════ */
+    #main { display: none; }
+
+    /* ─── NAV ───────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(255,253,234,0.92);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(240,95,136,0.12);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+    }
+    .nav-brand {
+      font-weight: 900;
+      font-size: 1.1rem;
+      color: var(--black);
+      letter-spacing: -0.02em;
+    }
+    .nav-brand .dot { color: var(--hot-pink); }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a {
+      color: rgba(26,26,26,0.5);
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--hot-pink); }
+
+    /* ─── SECTION HELPERS ───────────────────────────────────── */
+    .section-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 110px 48px;
+    }
+    .section-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--hot-pink);
+      margin-bottom: 14px;
+    }
+    .section-label::before {
+      content: '';
+      display: block; width: 20px; height: 2px;
+      background: var(--hot-pink);
+      border-radius: 2px;
+    }
+    h2.stitle {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 900;
+      color: var(--black);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+    }
+    h2.stitle em {
+      font-family: var(--font-accent);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--hot-pink);
+    }
+    .divider {
+      width: 40px; height: 4px;
+      background: var(--hot-pink);
+      border-radius: 2px;
+      margin-bottom: 32px;
+    }
+    p.lead {
+      font-size: 1.05rem;
+      color: #555;
+      line-height: 1.8;
+      max-width: 680px;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       HERO
+    ══════════════════════════════════════════════════════════ */
+    #hero {
+      min-height: 100vh;
+      background: var(--butter);
+      display: flex; align-items: center;
+      position: relative; overflow: hidden;
+    }
+    /* big circle accent */
+    .hero-circle {
+      position: absolute;
+      width: 520px; height: 520px;
+      border-radius: 50%;
+      background: var(--baby-pink);
+      opacity: .45;
+      right: -80px; top: 50%;
+      transform: translateY(-50%);
+    }
+    .hero-circle-2 {
+      position: absolute;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: var(--fresh-mint);
+      opacity: .6;
+      left: 60%; bottom: 10%;
+    }
+    .hero-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 140px 48px 100px;
+      position: relative; z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .hero-left {}
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--baby-pink);
+      color: var(--hot-pink);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 7px 16px;
+      border-radius: 100px;
+      margin-bottom: 28px;
+    }
+    .hero-tag::before { content: '★'; font-size: 0.7rem; }
+    #hero h1 {
+      font-size: clamp(2.8rem, 5vw, 4.5rem);
+      font-weight: 900;
+      color: var(--black);
+      line-height: 1.0;
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+    }
+    #hero h1 .dot { color: var(--hot-pink); }
+    .hero-sub {
+      font-family: var(--font-accent);
+      font-style: italic;
+      font-size: 1.2rem;
+      color: var(--matcha);
+      margin-bottom: 28px;
+      margin-top: 10px;
+    }
+    .hero-desc {
+      font-size: 1rem;
+      color: #666;
+      line-height: 1.75;
+      margin-bottom: 40px;
+      max-width: 480px;
+    }
+    .hero-cta {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--hot-pink);
+      color: white;
+      font-weight: 800;
+      font-size: 0.9rem;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 100px;
+      box-shadow: 0 4px 0 #c44a70;
+      transition: transform .15s, box-shadow .15s;
+      letter-spacing: 0.02em;
+    }
+    .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #c44a70; }
+
+    /* hero right: logo card */
+    .hero-right {
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hero-logo-card {
+      background: var(--white);
+      border-radius: 28px;
+      padding: 48px 40px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(240,95,136,0.15), 0 4px 16px rgba(0,0,0,0.06);
+      position: relative;
+    }
+    .hero-logo-card .logo-main {
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: var(--black);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .hero-logo-card .logo-main .dot { color: var(--hot-pink); }
+    .hero-logo-card .logo-tagline {
+      font-family: var(--font-accent);
+      font-style: italic;
+      font-size: 0.9rem;
+      color: var(--matcha);
+    }
+    /* sticker pill on card */
+    .bymaf-pill {
+      position: absolute;
+      bottom: -16px; right: 24px;
+      background: var(--hot-pink);
+      color: white;
+      font-weight: 900;
+      font-size: 0.85rem;
+      padding: 8px 18px;
+      border-radius: 100px;
+      box-shadow: 0 4px 0 #c44a70;
+      letter-spacing: -0.01em;
+    }
+    .bymaf-pill span { font-weight: 300; font-style: italic; }
+
+    /* floating stickers in hero */
+    .hero-sticker {
+      position: absolute;
+      width: 90px;
+      height: auto;
+      animation: floatS 4s ease-in-out infinite;
+      z-index: 2;
+      pointer-events: none;
+      filter: drop-shadow(0 8px 18px rgba(0,0,0,0.12));
+    }
+    .hero-sticker-1 { top: 14%;    left: 2%;   width: 85px;  animation-delay: 0s;   transform: rotate(-14deg); }
+    .hero-sticker-2 { top: 8%;     right: 2%;  width: 72px;  animation-delay: 1s;   transform: rotate(12deg);  }
+    .hero-sticker-3 { bottom: 10%; right: 3%;  width: 105px; animation-delay: 0.5s; transform: rotate(-10deg); }
+    @keyframes floatS {
+      0%,100% { transform: translateY(0) rotate(-8deg); }
+      50%      { transform: translateY(-16px) rotate(8deg); }
+    }
+
+    .scroll-hint {
+      position: absolute; bottom: 32px; left: 48px;
+      display: flex; align-items: center; gap: 10px;
+      color: rgba(26,26,26,0.3);
+      font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
+    }
+    .scroll-hint::before {
+      content: '';
+      display: block; width: 32px; height: 1px;
+      background: currentColor;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       01 — QUIÉNES SOMOS
+    ══════════════════════════════════════════════════════════ */
+    #quienes { background: var(--white); }
+    .diff-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 44px;
+    }
+    .diff-card {
+      background: var(--butter);
+      border-radius: 20px;
+      padding: 28px 22px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s;
+    }
+    .diff-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 4px;
+      background: var(--hot-pink);
+    }
+    .diff-card:hover { transform: translateY(-4px); }
+    .diff-card p { font-size: 0.88rem; color: #555; line-height: 1.65; }
+    .diff-card strong { color: var(--black); }
+
+    /* ═══════════════════════════════════════════════════════
+       02 — SERVICIOS
+    ══════════════════════════════════════════════════════════ */
+    #servicios { background: var(--butter); }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 44px;
+    }
+    .service-card {
+      background: var(--white);
+      border-radius: 24px;
+      padding: 32px 28px;
+      transition: transform .25s, box-shadow .25s;
+      border: 1.5px solid transparent;
+    }
+    .service-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(240,95,136,0.12);
+      border-color: var(--baby-pink);
+    }
+    .service-icon {
+      width: 52px; height: 52px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+    }
+    .service-icon img { width: 100%; height: auto; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.12)); }
+    .service-card h3 { font-size: 1rem; font-weight: 800; color: var(--black); margin-bottom: 10px; letter-spacing: -0.01em; }
+    .service-card p { font-size: 0.87rem; color: #666; line-height: 1.65; }
+    .service-badge {
+      display: inline-block;
+      background: var(--fresh-mint);
+      color: var(--matcha);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       03 — METODOLOGÍA
+    ══════════════════════════════════════════════════════════ */
+    #metodologia { background: var(--white); }
+    .steps-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0;
+      margin-top: 52px;
+      position: relative;
+    }
+    .steps-row::before {
+      content: '';
+      position: absolute;
+      top: 24px; left: 24px; right: 24px;
+      height: 2px;
+      background: var(--baby-pink);
+      z-index: 0;
+    }
+    .step-item { text-align: center; position: relative; z-index: 1; padding: 0 8px; }
+    .step-num-circle {
+      width: 48px; height: 48px;
+      background: var(--hot-pink);
+      border-radius: 50%;
+      color: white;
+      font-weight: 900; font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 0 #c44a70;
+    }
+    .step-item h3 { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--black); margin-bottom: 8px; }
+    .step-item p { font-size: 0.78rem; color: #888; line-height: 1.55; }
+
+    /* ═══════════════════════════════════════════════════════
+       04 — PAQUETES
+    ══════════════════════════════════════════════════════════ */
+    #paquetes { background: var(--black); }
+    #paquetes .section-label { color: var(--hot-pink); }
+    #paquetes .section-label::before { background: var(--hot-pink); }
+    #paquetes h2.stitle { color: var(--butter); }
+    #paquetes h2.stitle em { color: var(--hot-pink); }
+    #paquetes .divider { background: var(--hot-pink); }
+    #paquetes p.lead { color: rgba(255,253,234,0.55); }
+
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 48px;
+    }
+    .plan {
+      border-radius: 28px;
+      padding: 40px 32px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .25s;
+    }
+    .plan:hover { transform: translateY(-6px); }
+
+    .plan-i   { background: rgba(255,253,234,0.05); border: 1.5px solid rgba(255,255,255,0.08); }
+    .plan-ii  { background: var(--hot-pink); border: none; }
+    .plan-iii { background: rgba(255,253,234,0.05); border: 1.5px solid rgba(255,255,255,0.08); }
+
+    .plan-top-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      padding: 4px 12px; border-radius: 100px;
+      margin-bottom: 20px;
+    }
+    .plan-vol {
+      font-family: var(--font-accent);
+      font-style: italic;
+      font-size: 1rem;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 4px;
+    }
+    .plan-name {
+      font-size: 1.6rem; font-weight: 900;
+      color: white; letter-spacing: -0.03em;
+      margin-bottom: 20px;
+    }
+    .plan-price {
+      font-size: 3rem; font-weight: 900;
+      color: white; letter-spacing: -0.05em;
+      line-height: 1;
+    }
+    .plan-price sup { font-size: 1.2rem; vertical-align: top; margin-top: 8px; }
+    .plan-price sub { font-size: 0.9rem; font-weight: 400; opacity: .6; }
+    .plan-min { font-size: 0.78rem; color: rgba(255,255,255,0.45); margin: 8px 0 24px; }
+    .plan-sep { width: 100%; height: 1px; background: rgba(255,255,255,0.12); margin: 20px 0; }
+    .plan ul { list-style: none; }
+    .plan ul li {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.8);
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .plan ul li::before { content: '✓'; color: var(--baby-pink); font-weight: 700; flex-shrink: 0; }
+    .plan-ii ul li::before { color: rgba(255,255,255,0.9); }
+    .plan-ideal {
+      font-size: 0.8rem;
+      font-family: var(--font-accent);
+      font-style: italic;
+      color: rgba(255,255,255,0.45);
+      margin-top: 20px;
+      line-height: 1.5;
+    }
+
+    .conditions-box {
+      background: rgba(255,253,234,0.04);
+      border: 1px solid rgba(240,95,136,0.25);
+      border-radius: 20px;
+      padding: 28px 32px;
+      margin-top: 32px;
+    }
+    .conditions-box p {
+      font-size: 0.85rem;
+      color: rgba(255,253,234,0.55);
+      line-height: 1.8;
+    }
+    .conditions-box p + p { margin-top: 6px; }
+    .conditions-box strong { color: rgba(255,253,234,0.85); }
+
+    /* ═══════════════════════════════════════════════════════
+       05 — ADICIONALES
+    ══════════════════════════════════════════════════════════ */
+    #adicionales { background: var(--baby-pink); }
+    #adicionales .section-label { color: var(--hot-pink); }
+    #adicionales .section-label::before { background: var(--hot-pink); }
+    #adicionales h2.stitle { color: var(--black); }
+    #adicionales .divider { background: var(--hot-pink); }
+    #adicionales p.lead { color: rgba(26,26,26,0.65); }
+
+    .extras-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 44px;
+    }
+    .extra-card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 28px 24px;
+      display: flex; gap: 16px; align-items: flex-start;
+      transition: transform .2s;
+    }
+    .extra-card:hover { transform: translateY(-3px); }
+    .extra-card .ex-icon {
+      width: 44px; height: 44px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .extra-card .ex-content h4 { font-size: 0.9rem; font-weight: 800; color: var(--black); margin-bottom: 6px; }
+    .extra-card .ex-content p { font-size: 0.82rem; color: #777; line-height: 1.6; }
+    .extra-card .ex-price {
+      margin-top: 10px;
+      font-size: 0.88rem; font-weight: 800;
+      color: var(--hot-pink);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       06 — POR QUÉ ELEGIRNOS
+    ══════════════════════════════════════════════════════════ */
+    #porque { background: var(--butter); }
+    .reasons-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-top: 44px;
+    }
+    .reason-card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 32px 26px;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .reason-card:hover { transform: translateY(-5px); box-shadow: 0 12px 32px rgba(240,95,136,0.1); }
+    .reason-num {
+      font-family: var(--font-accent);
+      font-style: italic;
+      font-size: 3rem;
+      color: var(--baby-pink);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .reason-card h3 { font-size: 1rem; font-weight: 800; color: var(--black); margin-bottom: 10px; letter-spacing: -0.01em; }
+    .reason-card p { font-size: 0.87rem; color: #777; line-height: 1.65; }
+
+    /* ═══════════════════════════════════════════════════════
+       07 — TÉRMINOS
+    ══════════════════════════════════════════════════════════ */
+    #terminos { background: var(--white); }
+    .terms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 44px;
+    }
+    .term-block {
+      background: var(--butter);
+      border-radius: 20px;
+      padding: 28px 24px;
+    }
+    .term-block .term-top {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .term-icon-box {
+      width: 40px; height: 40px;
+      background: var(--hot-pink);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .term-block h3 { font-size: 0.88rem; font-weight: 800; color: var(--black); text-transform: uppercase; letter-spacing: 0.06em; }
+    .term-block ul { list-style: none; }
+    .term-block ul li {
+      font-size: 0.83rem; color: #666;
+      line-height: 1.6; padding: 5px 0 5px 14px;
+      border-bottom: 1px solid rgba(26,26,26,0.07);
+      position: relative;
+    }
+    .term-block ul li::before { content: '·'; position: absolute; left: 0; color: var(--hot-pink); font-size: 1.4rem; line-height: 0.9; }
+    .term-block ul li:last-child { border-bottom: none; }
+
+    /* ═══════════════════════════════════════════════════════
+       08 — PRÓXIMOS PASOS
+    ══════════════════════════════════════════════════════════ */
+    #pasos { background: var(--hot-pink); position: relative; overflow: hidden; }
+    #pasos::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      top: -200px; right: -100px;
+    }
+    #pasos .section-label { color: rgba(255,255,255,0.7); }
+    #pasos .section-label::before { background: rgba(255,255,255,0.5); }
+    #pasos h2.stitle { color: white; }
+    #pasos h2.stitle em { color: var(--butter); }
+    #pasos .divider { background: rgba(255,255,255,0.4); }
+    #pasos p.lead { color: rgba(255,255,255,0.8); }
+
+    .steps-final-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 44px;
+    }
+    .step-fin {
+      background: rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 20px 24px;
+      display: flex; align-items: center; gap: 16px;
+      backdrop-filter: blur(6px);
+      transition: background .2s;
+    }
+    .step-fin:hover { background: rgba(255,255,255,0.22); }
+    .step-fin .sf-num {
+      width: 36px; height: 36px; flex-shrink: 0;
+      background: rgba(255,255,255,0.25);
+      border-radius: 50%;
+      font-weight: 900; font-size: 0.9rem;
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-fin p { font-size: 0.9rem; color: white; font-weight: 500; line-height: 1.4; }
+
+    .contact-banner {
+      margin-top: 48px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 24px;
+      padding: 40px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 32px;
+      flex-wrap: wrap;
+      position: relative; z-index: 1;
+    }
+    .contact-banner h3 {
+      font-size: 1.4rem; font-weight: 900;
+      color: white;
+      letter-spacing: -0.02em;
+    }
+    .contact-banner h3 em {
+      font-family: var(--font-accent);
+      font-style: italic;
+      font-weight: 400;
+    }
+    .contact-items { display: flex; gap: 28px; flex-wrap: wrap; }
+    .c-item {
+      display: flex; align-items: center; gap: 10px;
+      color: white; font-size: 0.95rem; font-weight: 600;
+    }
+    .c-item .ci-icon {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+
+    /* ─── FOOTER ────────────────────────────────────────────── */
+    footer {
+      background: var(--black);
+      padding: 32px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer-logo {
+      font-weight: 900; font-size: 1rem;
+      color: var(--butter); letter-spacing: -0.02em;
+    }
+    .footer-logo .dot { color: var(--hot-pink); }
+    footer p {
+      color: rgba(255,253,234,0.25);
+      font-size: 0.78rem; letter-spacing: 0.05em;
+    }
+    .footer-tag {
+      font-family: var(--font-accent);
+      font-style: italic;
+      color: var(--matcha);
+      font-size: 0.85rem;
+    }
+
+    /* ─── RESPONSIVE ────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      .section-inner { padding: 80px 24px; }
+      .hero-inner { grid-template-columns: 1fr; padding: 120px 24px 80px; gap: 40px; }
+      .hero-right { display: none; }
+      .steps-row { grid-template-columns: repeat(3, 1fr); }
+      .steps-row::before { display: none; }
+      .plans-grid { grid-template-columns: 1fr; }
+      .steps-final-grid { grid-template-columns: 1fr; }
+      .contact-banner { flex-direction: column; padding: 28px; }
+      footer { flex-direction: column; text-align: center; }
+      .gate-sticker { display: none; }
+    }
+    @media (max-width: 480px) {
+      .steps-row { grid-template-columns: repeat(2, 1fr); }
+      h2.stitle { font-size: 1.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════ GATE ═══════════════════ -->
+  <div id="gate">
+    <img class="gate-sticker" src="stickers/star_olive.png" alt="">
+    <img class="gate-sticker" src="stickers/hand_phone.png" alt="">
+    <img class="gate-sticker" src="stickers/star_sage.png" alt="">
+    <img class="gate-sticker" src="stickers/camera.png" alt="">
+
+    <div class="gate-box">
+      <div class="gate-badge"><span>by</span>MAF</div>
+      <div class="gate-logo">MAF INSIGHT<span class="dot">.</span></div>
+      <div class="gate-tagline">(donde la estética tiene propósito)</div>
+      <div class="gate-divider"></div>
+      <h2>Accede a tu propuesta</h2>
+      <p class="sub">Introduce tu nombre y teléfono para ver la propuesta de servicios personalizada.</p>
+      <input type="text" id="gate-nombre"   placeholder="Tu nombre completo" autocomplete="name" />
+      <input type="tel"  id="gate-telefono" placeholder="Tu teléfono"        autocomplete="tel"  />
+      <button class="gate-btn" id="gate-btn" onclick="submitGate()">Ver propuesta →</button>
+      <div class="gate-error" id="gate-error">Por favor, completa ambos campos.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ MAIN ═══════════════════ -->
+  <div id="main">
+
+    <!-- NAV -->
+    <nav>
+      <div class="nav-brand">MAF INSIGHT<span class="dot">.</span></div>
+      <ul class="nav-links">
+        <li><a href="#quienes">Quiénes somos</a></li>
+        <li><a href="#servicios">Servicios</a></li>
+        <li><a href="#paquetes">Paquetes</a></li>
+        <li><a href="#adicionales">Extras</a></li>
+        <li><a href="#pasos">Empezar</a></li>
+      </ul>
+    </nav>
+
+    <!-- HERO -->
+    <section id="hero">
+      <div class="hero-circle"></div>
+      <div class="hero-circle-2"></div>
+
+      <div class="hero-inner">
+        <div class="hero-left">
+          <div class="hero-tag">Propuesta de Servicios · 2026</div>
+          <h1>MAF<br>INSIGHT<span class="dot">.</span></h1>
+          <p class="hero-sub">(donde la estética tiene propósito)</p>
+          <p class="hero-desc">
+            Combinamos creatividad estratégica con datos reales para hacer crecer tu negocio en Instagram y TikTok. Cada pieza de contenido tiene un propósito: conectar, convertir y posicionar tu marca.
+          </p>
+          <a href="#quienes" class="hero-cta">Explorar propuesta ↓</a>
+        </div>
+
+        <div class="hero-right">
+          <div class="hero-logo-card">
+            <div class="logo-main">MAF<br>INSIGHT<span class="dot">.</span></div>
+            <div class="logo-tagline">(donde la estética tiene propósito)</div>
+            <div class="bymaf-pill"><span>by</span>MAF</div>
+          </div>
+        </div>
+      </div>
+
+      <img class="hero-sticker hero-sticker-1" src="stickers/star_olive.png" alt="">
+      <img class="hero-sticker hero-sticker-2" src="stickers/laptop.png" alt="">
+      <img class="hero-sticker hero-sticker-3" src="stickers/star_sage.png" alt="">
+
+      <div class="scroll-hint">scroll para ver la propuesta</div>
+    </section>
+
+    <!-- 01 QUIÉNES SOMOS -->
+    <section id="quienes">
+      <div class="section-inner">
+        <div class="section-label">01 — Quiénes somos</div>
+        <h2 class="stitle">Una agencia hecha<br>para <em>negocios como el tuyo</em></h2>
+        <div class="divider"></div>
+        <p class="lead">MAF Insight es una agencia de marketing digital especializada en negocios locales y e-commerce. Gestionamos las redes sociales de tus clientes como si fueran nuestras, con una visión estratégica clara y una estética que diferencia.</p>
+        <p class="lead" style="margin-top:16px;">Nos especializamos en Instagram y TikTok — las dos plataformas con mayor potencial de crecimiento. Sabemos lo que funciona hoy, no lo que funcionaba ayer.</p>
+        <div class="diff-grid">
+          <div class="diff-card"><p><strong>Contenido con propósito:</strong> cada pieza está diseñada para un objetivo concreto.</p></div>
+          <div class="diff-card"><p><strong>Estrategia basada en tendencias</strong> actuales de Instagram y TikTok.</p></div>
+          <div class="diff-card"><p><strong>Gestión integral:</strong> diseño, copy, publicación y análisis en un solo equipo.</p></div>
+          <div class="diff-card"><p><strong>Comunicación directa</strong> y transparente, sin intermediarios.</p></div>
+          <div class="diff-card"><p><strong>Enfoque en resultados reales:</strong> alcance, engagement y conversiones.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 SERVICIOS -->
+    <section id="servicios">
+      <div class="section-inner">
+        <div class="section-label">02 — Nuestros servicios</div>
+        <h2 class="stitle">Todo lo que necesitas,<br><em>en un solo equipo</em></h2>
+        <div class="divider"></div>
+        <p class="lead">Un servicio integral diseñado para que tu negocio crezca de forma consistente y con identidad.</p>
+        <div class="services-grid">
+          <div class="service-card">
+            <div class="service-icon"><img src="stickers/hand_phone.png" style="width:36px;height:auto;"></div>
+            <h3>Gestión de Redes Sociales</h3>
+            <p>Planificación, publicación y gestión diaria de tu Instagram y/o TikTok. Calendario editorial mensual, adaptado a tendencias y coherente con tu marca.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon"><img src="stickers/camera.png" style="width:36px;height:auto;"></div>
+            <h3>Creación de Contenido</h3>
+            <p>Reels y TikToks optimizados para el algoritmo: gancho, transiciones, texto en pantalla, música tendencia y CTA efectivos para retener, entretener y convertir.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon"><img src="stickers/star_olive.png" style="width:36px;height:auto;"></div>
+            <h3>Diseño Gráfico</h3>
+            <p>Carruseles, posts estáticos, stories y plantillas. Estética, coherencia visual y legibilidad en todos los formatos, alineados con tu identidad de marca.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon"><img src="stickers/check.png" style="width:36px;height:auto;"></div>
+            <h3>Copywriting</h3>
+            <p>Captions que enganchan, CTAs que convierten y hashtags estratégicos. Tono de voz adaptado a tu marca y a tu audiencia.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon"><img src="stickers/star_sage.png" style="width:36px;height:auto;"></div>
+            <h3>Publicidad Pagada</h3>
+            <p>Gestión de Meta Ads y TikTok Ads: estrategia, segmentación, creatividades y optimización continua. El presupuesto en plataforma va siempre aparte.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon"><img src="stickers/laptop.png" style="width:40px;height:auto;"></div>
+            <h3>Informes y Análisis</h3>
+            <p>Informe mensual con alcance, impresiones, engagement, seguidores ganados y rendimiento. Datos para mejores decisiones.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon"><img src="stickers/star_olive.png" style="width:36px;height:auto;"></div>
+            <h3>SEO y Web <span class="service-badge">Premium</span></h3>
+            <p>Auditoría mensual e implementación de mejoras de posicionamiento: contenido, velocidad, palabras clave y estructura técnica básica.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 METODOLOGÍA -->
+    <section id="metodologia">
+      <div class="section-inner">
+        <div class="section-label">03 — Metodología</div>
+        <h2 class="stitle">Un proceso claro<br><em>desde el primer día</em></h2>
+        <div class="divider"></div>
+        <p class="lead">Trabajamos con un proceso estructurado para garantizar resultados consistentes desde el primer mes.</p>
+        <div class="steps-row">
+          <div class="step-item">
+            <div class="step-num-circle">01</div>
+            <h3>Onboarding</h3>
+            <p>Conocemos tu negocio, objetivos, público y competencia. Definimos tono, estética y estrategia.</p>
+          </div>
+          <div class="step-item">
+            <div class="step-num-circle">02</div>
+            <h3>Planificación</h3>
+            <p>Calendario editorial mensual con temas, formatos y fechas. Lo compartimos para revisión.</p>
+          </div>
+          <div class="step-item">
+            <div class="step-num-circle">03</div>
+            <h3>Producción</h3>
+            <p>Diseño gráfico, reels, edición y copys bajo la identidad visual de tu marca.</p>
+          </div>
+          <div class="step-item">
+            <div class="step-num-circle">04</div>
+            <h3>Revisión</h3>
+            <p>Te enviamos el contenido para revisión. Aplicamos cambios antes de publicar.</p>
+          </div>
+          <div class="step-item">
+            <div class="step-num-circle">05</div>
+            <h3>Publicación</h3>
+            <p>Publicamos en horarios óptimos con hashtags estratégicos.</p>
+          </div>
+          <div class="step-item">
+            <div class="step-num-circle">06</div>
+            <h3>Análisis</h3>
+            <p>Analizamos resultados y ajustamos la estrategia para el siguiente mes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 PAQUETES -->
+    <section id="paquetes">
+      <div class="section-inner">
+        <div class="section-label">04 — Paquetes y precios</div>
+        <h2 class="stitle">Tres niveles.<br><em>Un objetivo: crecer.</em></h2>
+        <div class="divider"></div>
+        <p class="lead">Todos incluyen diseño, copy y gestión completa. Precios sin IVA (21%).</p>
+        <div class="plans-grid">
+
+          <div class="plan plan-i">
+            <div class="plan-vol">Vol.</div>
+            <div class="plan-name">I</div>
+            <div class="plan-price"><sup>€</sup>500<sub>/mes</sub></div>
+            <div class="plan-min">Mínimo negociable: 450 €</div>
+            <div class="plan-sep"></div>
+            <ul>
+              <li>Instagram</li>
+              <li>12 piezas/mes · 3 reels</li>
+              <li>Diseño gráfico</li>
+              <li>Copywriting</li>
+              <li>Informe mensual básico</li>
+            </ul>
+            <p class="plan-ideal">Ideal para negocios locales con presupuesto inicial.</p>
+          </div>
+
+          <div class="plan plan-ii">
+            <div class="plan-top-badge">⭐ Más popular</div>
+            <div class="plan-vol">Vol.</div>
+            <div class="plan-name">II</div>
+            <div class="plan-price"><sup>€</sup>900<sub>/mes</sub></div>
+            <div class="plan-min">Mínimo negociable: 800 €</div>
+            <div class="plan-sep"></div>
+            <ul>
+              <li>Instagram + TikTok</li>
+              <li>16 piezas/mes · 6 reels</li>
+              <li>Diseño gráfico</li>
+              <li>Copywriting</li>
+              <li>Informe intermedio</li>
+              <li>Gestión de comentarios</li>
+              <li>Meta Ads</li>
+            </ul>
+            <p class="plan-ideal">Ideal para negocios locales o e-commerce en crecimiento.</p>
+          </div>
+
+          <div class="plan plan-iii">
+            <div class="plan-vol">Vol.</div>
+            <div class="plan-name">III</div>
+            <div class="plan-price"><sup>€</sup>1.500<sub>/mes</sub></div>
+            <div class="plan-min">Mínimo negociable: 1.300 €</div>
+            <div class="plan-sep"></div>
+            <ul>
+              <li>Instagram + TikTok</li>
+              <li>20 piezas/mes · 8 reels</li>
+              <li>Diseño + Branding básico</li>
+              <li>Copywriting</li>
+              <li>Informe avanzado</li>
+              <li>Gestión de comentarios</li>
+              <li>Meta Ads + TikTok Ads</li>
+              <li>SEO / Web — Auditoría + opt.</li>
+              <li>1 reunión estratégica/mes</li>
+            </ul>
+            <p class="plan-ideal">Ideal para e-commerce o negocio con ambición de escalar.</p>
+          </div>
+        </div>
+
+        <div class="conditions-box">
+          <p>⚠️ <strong>Condiciones importantes:</strong></p>
+          <p>· El presupuesto de inversión en plataforma (Meta Ads, TikTok Ads) va <strong>siempre aparte</strong> de la tarifa de gestión.</p>
+          <p>· Presupuesto mínimo recomendado: Vol. II → 200 €/mes | Vol. III → 400 €/mes.</p>
+          <p>· Permanencia mínima: <strong>3 meses</strong>. El marketing digital necesita tiempo para mostrar resultados.</p>
+          <p>· En caso de negociación, se ajustan los servicios incluidos, nunca el valor del trabajo.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 SERVICIOS ADICIONALES -->
+    <section id="adicionales">
+      <div class="section-inner">
+        <div class="section-label">05 — Servicios adicionales</div>
+        <h2 class="stitle">Más allá del paquete,<br><em>lo que necesites</em></h2>
+        <div class="divider"></div>
+        <p class="lead">Contrátalos de forma independiente o añádelos a cualquier paquete.</p>
+        <div class="extras-grid">
+          <div class="extra-card">
+            <div class="ex-icon"><img src="stickers/camera.png" style="width:32px;height:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1))"></div>
+            <div class="ex-content">
+              <h4>Sesión de fotos / video</h4>
+              <p>Producción audiovisual profesional. Incluye edición y entrega optimizada para redes.</p>
+              <div class="ex-price">Desde 250 €</div>
+            </div>
+          </div>
+          <div class="extra-card">
+            <div class="ex-icon"><img src="stickers/check.png" style="width:32px;height:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1))"></div>
+            <div class="ex-content">
+              <h4>Auditoría de redes</h4>
+              <p>Análisis completo de contenido, métricas, competencia y oportunidades. Informe con recomendaciones accionables.</p>
+              <div class="ex-price">150 € · único pago</div>
+            </div>
+          </div>
+          <div class="extra-card">
+            <div class="ex-icon"><img src="stickers/star_sage.png" style="width:32px;height:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1))"></div>
+            <div class="ex-content">
+              <h4>Estrategia de contenido inicial</h4>
+              <p>Pilares de contenido, tono de voz y calendario base para los próximos 3 meses.</p>
+              <div class="ex-price">200 € · único pago</div>
+            </div>
+          </div>
+          <div class="extra-card">
+            <div class="ex-icon"><img src="stickers/star_olive.png" style="width:32px;height:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1))"></div>
+            <div class="ex-content">
+              <h4>Red social adicional</h4>
+              <p>Añade LinkedIn, Pinterest u otra red a cualquier paquete existente.</p>
+              <div class="ex-price">+200 €/mes</div>
+            </div>
+          </div>
+          <div class="extra-card">
+            <div class="ex-icon"><img src="stickers/hand_phone.png" style="width:32px;height:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1))"></div>
+            <div class="ex-content">
+              <h4>Gestión de ads adicional</h4>
+              <p>Campañas adicionales por tarifa fija mensual más tu presupuesto en plataforma.</p>
+              <div class="ex-price">Desde 150 €/mes + presupuesto</div>
+            </div>
+          </div>
+          <div class="extra-card">
+            <div class="ex-icon"><img src="stickers/laptop.png" style="width:36px;height:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1))"></div>
+            <div class="ex-content">
+              <h4>Diseño y desarrollo web</h4>
+              <p>Web profesional desde cero, optimizada para móvil y enfocada en conversión. Precio según páginas y funcionalidades.</p>
+              <div class="ex-price">Desde 500 € · único pago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 POR QUÉ ELEGIRNOS -->
+    <section id="porque">
+      <div class="section-inner">
+        <div class="section-label">06 — Por qué MAF Insight</div>
+        <h2 class="stitle">La elección correcta<br><em>para tu negocio</em></h2>
+        <div class="divider"></div>
+        <p class="lead">Hay muchas agencias de marketing. Estas son las razones por las que MAF Insight es diferente.</p>
+        <div class="reasons-grid">
+          <div class="reason-card">
+            <div class="reason-num">01</div>
+            <h3>Especialización total</h3>
+            <p>Solo trabajamos Instagram y TikTok. No somos generalistas: somos expertos en las plataformas donde está tu audiencia hoy.</p>
+          </div>
+          <div class="reason-card">
+            <div class="reason-num">02</div>
+            <h3>Enfoque en resultados</h3>
+            <p>Cada acción tiene un objetivo medible. No publicamos por publicar: publicamos para crecer, conectar y vender.</p>
+          </div>
+          <div class="reason-card">
+            <div class="reason-num">03</div>
+            <h3>Siempre al día</h3>
+            <p>Seguimos las tendencias en tiempo real. Lo que funciona esta semana en TikTok, lo adaptamos para ti esta semana.</p>
+          </div>
+          <div class="reason-card">
+            <div class="reason-num">04</div>
+            <h3>Comunicación directa</h3>
+            <p>Trato personalizado, sin intermediarios. Siempre sabrás en qué estamos trabajando y por qué.</p>
+          </div>
+          <div class="reason-card">
+            <div class="reason-num">05</div>
+            <h3>Estética con propósito</h3>
+            <p>El diseño no es decoración. Cada pieza visual está pensada para comunicar, atraer y convertir.</p>
+          </div>
+          <div class="reason-card">
+            <div class="reason-num">06</div>
+            <h3>Transparencia total</h3>
+            <p>Informes mensuales con datos reales. Sin métricas vacías: te explicamos qué significan y qué hacemos con ellas.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 TÉRMINOS -->
+    <section id="terminos">
+      <div class="section-inner">
+        <div class="section-label">07 — Términos y condiciones</div>
+        <h2 class="stitle">Claro, justo<br><em>y por escrito</em></h2>
+        <div class="divider"></div>
+        <p class="lead">Condiciones pensadas para garantizar un servicio profesional y transparente para ambas partes.</p>
+        <div class="terms-grid">
+          <div class="term-block">
+            <div class="term-top">
+              <div class="term-icon-box">💰</div>
+              <h3>Pagos</h3>
+            </div>
+            <ul>
+              <li>Pago 100% por adelantado al inicio de cada mes.</li>
+              <li>Precios sin IVA (21%). Factura al inicio del período.</li>
+              <li>El presupuesto publicitario lo abona directamente el cliente.</li>
+              <li>El impago puede suponer la pausa del servicio.</li>
+            </ul>
+          </div>
+          <div class="term-block">
+            <div class="term-top">
+              <div class="term-icon-box">📅</div>
+              <h3>Entrega</h3>
+            </div>
+            <ul>
+              <li>Contenido entregado antes del día 1 para revisión.</li>
+              <li>Primer calendario en máx. 3 semanas desde onboarding.</li>
+              <li>5 días laborables para enviar feedback.</li>
+              <li>Sin respuesta en plazo = contenido aprobado.</li>
+            </ul>
+          </div>
+          <div class="term-block">
+            <div class="term-top">
+              <div class="term-icon-box">✏️</div>
+              <h3>Revisiones</h3>
+            </div>
+            <ul>
+              <li>2 rondas de cambios por pieza incluidas.</li>
+              <li>Una ronda = conjunto de cambios en un solo mensaje.</li>
+              <li>Cambios de concepto pueden tener coste adicional.</li>
+              <li>Desde la 3ª ronda: 30 €/ronda.</li>
+            </ul>
+          </div>
+          <div class="term-block">
+            <div class="term-top">
+              <div class="term-icon-box">📌</div>
+              <h3>Permanencia</h3>
+            </div>
+            <ul>
+              <li>Permanencia mínima: 3 meses.</li>
+              <li>Cancelación anticipada: 1 mes adicional de penalización.</li>
+              <li>Cancelación tras período mínimo: 15 días de antelación.</li>
+              <li>Rescisión por mutuo acuerdo: sin penalización.</li>
+            </ul>
+          </div>
+          <div class="term-block">
+            <div class="term-top">
+              <div class="term-icon-box">🔗</div>
+              <h3>Comunicación</h3>
+            </div>
+            <ul>
+              <li>Gestión vía Notion / Trello acordado.</li>
+              <li>Respuesta en máximo 24h laborables.</li>
+              <li>Horario: lunes a viernes, 9:00–18:00h.</li>
+            </ul>
+          </div>
+          <div class="term-block">
+            <div class="term-top">
+              <div class="term-icon-box">⚖️</div>
+              <h3>Propiedad</h3>
+            </div>
+            <ul>
+              <li>Todo el contenido creado es propiedad del cliente una vez abonado.</li>
+              <li>MAF Insight puede usar piezas como portfolio salvo indicación expresa.</li>
+              <li>Toda la información del negocio se trata con confidencialidad total.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 PRÓXIMOS PASOS -->
+    <section id="pasos">
+      <div class="section-inner">
+        <div class="section-label">08 — Próximos pasos</div>
+        <h2 class="stitle">¿Todo claro?<br><em>Empecemos.</em></h2>
+        <div class="divider"></div>
+        <p class="lead">Si esta propuesta encaja con lo que necesitas, el proceso para empezar es muy sencillo.</p>
+
+        <div class="steps-final-grid">
+          <div class="step-fin"><div class="sf-num">1</div><p>Confirmar el paquete elegido y las condiciones</p></div>
+          <div class="step-fin"><div class="sf-num">2</div><p>Firma del acuerdo de servicios (contrato por email)</p></div>
+          <div class="step-fin"><div class="sf-num">3</div><p>Pago del primer mes para activar el servicio</p></div>
+          <div class="step-fin"><div class="sf-num">4</div><p>Reunión de onboarding para conocer tu negocio</p></div>
+          <div class="step-fin"><div class="sf-num">5</div><p>Entrega del primer calendario editorial</p></div>
+          <div class="step-fin"><div class="sf-num">6</div><p>¡Arrancamos! ⭐</p></div>
+        </div>
+
+        <div class="contact-banner">
+          <div>
+            <h3>¿Tienes dudas?<br><em>Estamos aquí.</em></h3>
+          </div>
+          <div class="contact-items">
+            <div class="c-item">
+              <div class="ci-icon">📧</div>
+              info@mafinsight.com
+            </div>
+            <div class="c-item">
+              <div class="ci-icon">📞</div>
+              711 23 26 84
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-logo">MAF INSIGHT<span class="dot">.</span></div>
+      <span class="footer-tag">(donde la estética tiene propósito)</span>
+      <p>Marketing Digital · 2026</p>
+    </footer>
+
+  </div><!-- /#main -->
+
+  <!-- SCRIPTS -->
+  <script>
+    const SUPABASE_URL  = 'https://mlxgdzhnwvmggzrpgihy.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1seGdkemhud3ZtZ2d6cnBnaWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MzYyODUsImV4cCI6MjA5MTIxMjI4NX0.D95F1MouUk8L7LtHp3BcIMLRWJEQ-WjFCN4iF8EsnME';
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    async function submitGate() {
+      const nombre   = document.getElementById('gate-nombre').value.trim();
+      const telefono = document.getElementById('gate-telefono').value.trim();
+      const errEl    = document.getElementById('gate-error');
+      const btn      = document.getElementById('gate-btn');
+
+      errEl.style.display = 'none';
+      if (!nombre || !telefono) {
+        errEl.style.display = 'block';
+        errEl.textContent   = 'Por favor, completa ambos campos.';
+        return;
+      }
+
+      btn.disabled    = true;
+      btn.textContent = 'Un momento...';
+
+      try {
+        const { error } = await client.from('visitas').insert([{ nombre, telefono }]);
+        if (error) throw error;
+
+        const gate = document.getElementById('gate');
+        gate.style.transition = 'opacity .5s, transform .5s';
+        gate.style.opacity    = '0';
+        gate.style.transform  = 'scale(1.04)';
+        setTimeout(() => {
+          gate.style.display = 'none';
+          document.getElementById('main').style.display = 'block';
+          window.scrollTo(0, 0);
+        }, 500);
+
+      } catch (err) {
+        console.error(err);
+        btn.disabled    = false;
+        btn.textContent = 'Ver propuesta →';
+        errEl.style.display = 'block';
+        errEl.textContent   = 'Error al guardar. Por favor intenta de nuevo.';
+      }
+    }
+
+    ['gate-nombre', 'gate-telefono'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key === 'Enter') submitGate();
+      });
+    });
+  </script>
+</body>
+</html>
