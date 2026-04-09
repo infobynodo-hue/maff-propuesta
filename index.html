@@ -836,7 +836,25 @@
       .steps-final-grid { grid-template-columns: 1fr; }
       .contact-banner { flex-direction: column; padding: 28px; }
       footer { flex-direction: column; text-align: center; }
-      .gate-sticker { display: none; }
+
+      /* Gate móvil — card más compacta con stickers visibles */
+      .gate-box {
+        padding: 36px 28px;
+        max-width: 310px;
+        border-radius: 24px;
+      }
+      .gate-logo { font-size: 1.7rem; }
+      .gate-box h2 { font-size: 0.95rem; }
+      .gate-box p.sub { font-size: 0.78rem; margin-bottom: 20px; }
+      .gate-box input { padding: 11px 14px; font-size: 0.88rem; margin-bottom: 10px; }
+      .gate-btn { padding: 13px; font-size: 0.88rem; }
+
+      /* Stickers: visibles, más pequeños, en las 4 esquinas */
+      .gate-sticker { display: block; }
+      .gate-sticker:nth-child(1) { top: 4%;  left: 2%;  width: 68px; }
+      .gate-sticker:nth-child(2) { top: 4%;  right: 2%; width: 60px; }
+      .gate-sticker:nth-child(3) { bottom: 4%; left: 2%; width: 72px; }
+      .gate-sticker:nth-child(4) { bottom: 8%; right: 2%; width: 65px; }
     }
     @media (max-width: 480px) {
       .steps-row { grid-template-columns: repeat(2, 1fr); }
